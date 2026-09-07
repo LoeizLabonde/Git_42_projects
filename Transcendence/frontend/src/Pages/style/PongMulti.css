@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@layer components {
+  .pong-multi-page {
+    @apply min-h-screen bg-black;
+  }
+
+  .game-screen {
+    @apply relative min-h-screen flex flex-col justify-center items-center
+    bg-gradient-to-br from-black to-slate-900 py-5 px-5;
+  }
+
+  .game-area {
+    @apply mt-20; /* Espace pour le score en haut */
+  }
+
+  /* Overlay de fin de partie */
+  .game-over-overlay {
+    @apply fixed inset-0 bg-black/85 flex justify-center items-center z-[1000];
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  .game-over-modal {
+    @apply bg-white rounded-2xl py-10 px-10 max-w-sm text-center shadow-2xl;
+    animation: slideUp 0.4s ease-out;
+  }
+
+  .game-over-title {
+    @apply text-4xl font-bold text-blue-900 mb-5 font-mono;
+  }
+
+  .game-over-result {
+    @apply text-2xl my-5 text-gray-900;
+  }
+
+  .final-score {
+    @apply text-xl text-gray-600 my-5 font-mono;
+  }
+
+  .btn {
+    @apply py-3 px-10 text-lg font-bold border-0 rounded-lg
+    cursor-pointer transition-all duration-300 font-mono mt-5;
+  }
+
+  .btn-primary {
+    @apply bg-green-400 text-white;
+  }
+
+  .btn-primary:hover {
+    @apply bg-green-500 -translate-y-0.5;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  @layer components {
+    .game-area {
+      @apply scale-80;
+    }
+  }
+}
+
+@media (max-width: 700px) {
+  @layer components {
+    .game-area {
+      @apply scale-60;
+    }
+  }
+}

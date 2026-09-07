@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+	provider = "prisma-client"
+	output   = "../generated/prisma"
+}
+
+datasource db {
+	provider = "mysql"
+	// url      = "mysql://root:root@localhost:3306/mydb"
+}
+
+// schema.prisma
+model User {
+	id				String		@id @default(uuid())
+	email			String?		@unique
+	password		String?		// Nullable pour OAuth users rajouter ? a la fin pour ca
+	username		String		@unique
+	fortyTwoId		String?		@unique
+	discordId		String?		@unique
+	avatarUrl		String?		@default("/avatars/default_avatar.png")
+	role			UserRoles	@default(USER)
+	createdAt		DateTime	@default(now())
+	isOnline		Boolean		@default(false)
+	refreshToken	String?		@db.Text
+
+	// Level & Experience
+	level			Int			@default(1)
+	experience		Int			@default(0)
+
+	// Relations
+	sentFriendRequests		Friendship[]	@relation("sender")
+	receivedFriendRequests	Friendship[]	@relation("receiver")
+
+	// Pour recuperer facilement tous les amis
+	friendshipAsUser1	Friend[]	@relation("user1")
+	friendshipAsUser2	Friend[]	@relation("user2")
+
+	msgSent ChatMessage[] @relation("sender")
+	MsgReceived ChatMessage[] @relation("receiver")
+	// Historique des parties
+	matchWins	Match[]	@relation("matchWins")
+	matchLosses	Match[]	@relation("matchLosses")
+}
+
+// Historique des parties jouees
+model Match {
+	id          String   @id @default(uuid())
+	startedAt   DateTime @default(now())
+	endedAt     DateTime
+	durationSec Int
+
+	// true si la partie s'est prolongee en overtime
+	isOvertime  Boolean  @default(false)
+
+	// null si le joueur est un invite (pas de compte)
+	winnerId    String?
+	loserId     String?
+
+	// Pseudos affiches (username ou "InviteXXX")
+	winnerLabel String
+	loserLabel  String
+
+	scoreWinner Int
+	scoreLoser  Int
+
+	winner  User?  @relation("matchWins",   fields: [winnerId],  references: [id], onDelete: SetNull)
+	loser   User?  @relation("matchLosses", fields: [loserId],   references: [id], onDelete: SetNull)
+}
+
+// Table pour les demandes d'amitie EN ATTENTE
+model Friendship {
+	id			String				@id @default(uuid())
+	senderId	String
+	receiverId	String
+	status		FriendRequestStatus	@default(PENDING) // PENDING, ACCEPTED, REJECTED, BLOCKED
+	createdAt	DateTime			@default(now())
+	updatedAt	DateTime			@updatedAt
+
+	// Relations
+	sender		User	@relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+	receiver	User	@relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+	// Empeche les doublons 
+	@@unique([senderId, receiverId])
+	@@unique([receiverId, senderId])
+}
+
+// Table separee pour les amities CONFIRMEES
+model Friend {
+	id			String		@id @default(uuid())
+	user1Id		String
+	user2Id		String
+	createdAt	DateTime	@default(now())
+
+	user1	User	@relation("user1", fields: [user1Id], references: [id], onDelete: Cascade)
+	user2	User	@relation("user2", fields: [user2Id], references: [id], onDelete: Cascade)
+
+	@@unique([user1Id, user2Id])
+}
+
+enum FriendRequestStatus {
+	PENDING
+	ACCEPTED
+	REJECTED
+	BLOCKED
+	UNFRIENDED
+}
+
+enum UserRoles {
+	USER
+	ADMIN
+	GUEST
+}
+
+model ChatMessage {
+	id			String @id @default(uuid())
+	message		String @db.Text
+	time 		DateTime @default(now())
+	senderId	String
+	receiverId	String
+	read		Boolean @default(false)
+	status		StatusMsg @default(PENDING)
+	sender		User	@relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+	receiver	User	@relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+enum StatusMsg {
+	PENDING
+	SENT
+	BLOCKED
+}

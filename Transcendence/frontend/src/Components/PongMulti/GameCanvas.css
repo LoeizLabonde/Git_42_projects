@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@layer components {
+  .game-canvas-container {
+    @apply relative inline-block shadow-[0_0_20px_rgba(0,0,0,0.5)] rounded-lg overflow-hidden;
+  }
+
+  .game-canvas {
+    @apply block bg-black;
+  }
+
+  .game-field {
+    @apply bg-black;
+  }
+
+  /* Animation subtile pour la balle */
+  .ball {
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+  }
+
+  /* Animation pour les raquettes */
+  .paddle {
+    @apply transition-all duration-50;
+  }
+
+  .paddle-left,
+  .paddle-right {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
+  }
+
+  /* Indicateur de côté du joueur */
+  .player-indicator {
+    @apply absolute bottom-5 py-2 px-4 bg-black/70
+    text-lime-400 text-sm font-bold rounded border-2 border-lime-400;
+  }
+
+  .player-indicator-left {
+    @apply left-5;
+  }
+
+  .player-indicator-right {
+    @apply right-5;
+  }
+}

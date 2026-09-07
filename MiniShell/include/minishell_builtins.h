@@ -1,0 +1,47 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell_builtins.h                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: llabonde <llabonde@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/10/09 19:23:12 by apetitco          #+#    #+#             */
+/*   Updated: 2024/11/05 15:46:57 by llabonde         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef MINISHELL_BUILTINS_H
+# define MINISHELL_BUILTINS_H
+
+# include <stdbool.h>
+
+# include "minishell_types.h"
+
+///TYPEDEFS/////////////////////////////////////////////////////////////////////
+typedef int	(*t_builtin_ft)(char **str, t_mo_shell *mo_shell, t_cmd *cmd);
+////////////////////////////////////////////////////////////////////////////////
+
+///MAIN BLOCKS//////////////////////////////////////////////////////////////////
+t_builtin_ft	launch_builtin(t_cmd *cmd);
+////////////////////////////////////////////////////////////////////////////////
+
+///BUILTINS/////////////////////////////////////////////////////////////////////
+int				ms_cd(char **args, t_mo_shell *mo_shell, t_cmd *cmd);
+int				ms_echo(char **args, t_mo_shell *mo_shell, t_cmd *cmd);
+int				ms_env(char **args, t_mo_shell *mo_shell, t_cmd *cmd);
+int				ms_exit(char **args, t_mo_shell *mo_shell, t_cmd *cmd);
+int				ms_export(char **args, t_mo_shell *ms, t_cmd *cmd);
+int				ms_pwd(char **args, t_mo_shell *mo_shell, t_cmd *cmd);
+int				ms_unset(char **args, t_mo_shell *mo_shell, t_cmd *cmd);
+////////////////////////////////////////////////////////////////////////////////
+
+///CHECKERS/////////////////////////////////////////////////////////////////////
+int				ms_export_check_options(char **args, int *iterator);
+bool			is_builtin(char *str);
+////////////////////////////////////////////////////////////////////////////////
+
+///GETTERS//////////////////////////////////////////////////////////////////////
+t_builtin		*get_builtin_array(void);
+////////////////////////////////////////////////////////////////////////////////
+
+#endif

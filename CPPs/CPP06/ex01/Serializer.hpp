@@ -1,0 +1,33 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Serializer.hpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: llabonde <llabonde@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/08/29 14:10:48 by llabonde          #+#    #+#             */
+/*   Updated: 2025/08/29 14:18:29 by llabonde         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef SERIALIZER_HPP
+# define SERIALIZER_HPP
+# include <stdint.h>
+# include "Data.hpp"
+# include <iostream>
+
+
+class Serializer
+{
+    private:
+        Serializer();
+        Serializer(Serializer const &other);
+        Serializer &operator=(Serializer const &other);
+        ~Serializer(void);
+    
+    public:
+        static uintptr_t serialize(Data* ptr);
+        static Data* deserialize(uintptr_t raw);
+};
+
+#endif

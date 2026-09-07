@@ -1,0 +1,30 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    @apply leading-relaxed font-normal;
+
+    /* @apply text-white/87 bg-gray-900; */
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    @apply font-medium text-inherit no-underline;
+  }
+  a:hover {
+    @apply text-inherit;
+  }
+
+  body {
+    @apply bg-gray-900 text-white min-h-screen m-0;
+  }
+}
+

@@ -1,0 +1,257 @@
+import type { Location, Meta } from "express-validator";
+import prisma from "../lib/prisma.js";
+
+export const registerUsersSchema = {
+	email: {
+		trim: true,
+		escape: true,
+		normalizeEmail: {
+			options : {
+				gmail_remove_dots: false
+			}
+		},
+		notEmpty: {
+			errorMessage: "A email is required."
+		},
+		isEmail: {
+			errorMessage : "Please enter a valid email."
+		}
+	},
+	password : {
+		notEmpty: {
+			errorMessage: "A password is required."
+		},
+		isStrongPassword: {
+			options : {
+				minLength: 8,
+				minLowercase: 1,
+				minUppercase: 1,
+				minNumbers: 1,
+				minSymbols: 1,
+			},
+			errorMessage: "The password must contain at least 8 characters, including one uppercase letter, one \
+			lowercase letter, one number, and one symbol."
+		}
+	},
+	username: {
+		trim: true,
+		escape: true,
+		notEmpty: {
+			errorMessage: "A username is required."
+		},
+		isLength: {
+			options: {
+				min: 3,
+				max: 20,
+			},
+			errorMessage: "Between 3 and 20 characters"
+		}
+	}
+};
+
+export const loginSchema = {
+	email: {
+		trim: true,
+		escape: true,
+		normalizeEmail: {
+			options : {
+				gmail_remove_dots: false
+			}
+		},
+		notEmpty: {
+			errorMessage: "A email is required."
+		},
+		isEmail: {
+			errorMessage : "Please enter a valid email."
+		}
+	},
+	password : {
+		notEmpty: {
+			errorMessage: "A password is required."
+		},
+		isStrongPassword: {
+			options : {
+				minLength: 8,
+				minLowercase: 1,
+				minUppercase: 1,
+				minNumbers: 1,
+				minSymbols: 1,
+			},
+			errorMessage: "The password must contain at least 8 characters, including one uppercase letter, one \
+			lowercase letter, one number, and one symbol."
+		}
+	},
+};
+
+export const updateProfileSchema = {
+	email: {
+		optional: true,
+		trim: true,
+		escape: true,
+		normalizeEmail: {
+			options : {
+				gmail_remove_dots: false
+			}
+		},
+		isEmail: {
+			errorMessage : "Please enter a valid email."
+		},
+		custom: {
+			options: async (value:string, { req }: Meta) => {
+				if (!value) return true;
+				const existing = await prisma.user.findFirst({
+					where: { email: value, id: { not: req.user.id } }
+				});
+				if (existing) throw new Error("Email already in use");
+				return true;
+			}
+		}
+	},
+	username : {
+		optional: true,
+		trim: true,
+		escape: true,
+		isLength: {
+			options: {
+				min: 3,
+				max: 20,
+			},
+			errorMessage: "Between 3 and 20 characters"
+		},
+		custom: {
+			options: async (value:string, { req }: Meta) => {
+				if (!value) return true;
+				const existing = await prisma.user.findFirst({
+					where: { username: value, id: { not: req.user.id } }
+				});
+				if (existing) throw new Error("username already in use");
+				return true;
+			}
+		}
+	},
+};
+
+export const changePasswordSchema = {
+	currentPassword: {
+		notEmpty: {
+			errorMessage: "A password is required."
+		}
+	},
+	newPassword : {
+		notEmpty: {
+			errorMessage: "A password is required."
+		},
+		isStrongPassword: {
+			options : {
+				minLength: 8,
+				minLowercase: 1,
+				minUppercase: 1,
+				minNumbers: 1,
+				minSymbols: 1,
+			},
+			errorMessage: "The password must contain at least 8 characters, including one uppercase letter, one \
+			lowercase letter, one number, and one symbol."
+		}
+	},
+};
+
+export const friendRequestSchema = {
+	receiverId: {
+		notEmpty: {
+			errorMessage : "The ID of the user who will receive the friend request is required."
+		},
+		isUUID: {
+			version: 4,
+			errorMessage: "The ID provided is not a valid UUID."
+		}
+	}
+}
+
+export const friendActionSchema = {
+	action: {
+		in: ['body'] as Location[],
+		isIn: {
+			options: [['accept', 'reject', 'block','cancel']],
+			errorMessage: 'Action must be accept, reject, block or cancel',
+		},
+	},
+};
+
+export const updateUserAdminSchema = {
+	email: {
+		optional: true,
+		trim: true,
+		escape: true,
+		normalizeEmail: {
+			options : {
+				gmail_remove_dots: false
+			}
+		},
+		isEmail: {
+			errorMessage : "Please enter a valid email."
+		},
+		custom: {
+			options: async (value:string, { req }: Meta) => {
+				if (!value) return true;
+				const targetUserId = req.params?.id;
+				if (!targetUserId) return true;
+				const existing = await prisma.user.findFirst({
+					where: { email: value, id: { not: targetUserId } }
+				});
+				if (existing) throw new Error("Email already in use");
+				return true;
+			}
+		}
+	},
+	newPassword : {
+		optional: true,
+		isStrongPassword: {
+			options : {
+				minLength: 8,
+				minLowercase: 1,
+				minUppercase: 1,
+				minNumbers: 1,
+				minSymbols: 1,
+			},
+			errorMessage: "The password must contain at least 8 characters, including one uppercase letter, one \
+			lowercase letter, one number, and one symbol."
+		}
+	},
+	username : {
+		optional: true,
+		trim: true,
+		escape: true,
+		isLength: {
+			options: {
+				min: 3,
+				max: 20,
+			},
+			errorMessage: "Between 3 and 20 characters"
+		},
+		custom: {
+			options: async (value:string, { req }: Meta) => {
+				if (!value) return true;
+				const targetUserId = req.params?.id;
+				if (!targetUserId) return true;
+				const existing = await prisma.user.findFirst({
+					where: { username: value, id: { not: targetUserId } }
+				});
+				if (existing) throw new Error("username already in use");
+				return true;
+			}
+		}
+	}
+}
+
+export const changeUserRoleAdminSchema = {
+	role: {
+		in: ['body'] as Location[],
+		notEmpty: {
+			errorMessage: 'Role is required',
+		},
+		isIn: {
+			options: [['USER', 'ADMIN']],
+			errorMessage: 'Role must be USER or ADMIN',
+		}
+	}
+}

@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+@layer components {
+  /* ── ScoreBoard page ────────────────────────────────────────────────────── */
+  .scoreboard-page {
+    @apply min-h-screen flex flex-col items-center justify-start
+    py-8 px-4 bg-transparent text-slate-200;
+  }
+
+  .scoreboard-title {
+    @apply text-4xl font-black tracking-widest uppercase
+    text-indigo-300 mb-6;
+  }
+
+  /* ── Square frame ───────────────────────────────────────────────────────── */
+  .scoreboard-frame {
+    @apply w-[clamp(320px,92vw,780px)] aspect-square
+    bg-gray-950/85 border border-indigo-500/35 rounded-lg
+    flex flex-col overflow-hidden
+    shadow-[0_0_40px_rgba(99,102,241,0.12)];
+  }
+
+  /* ── Inner scrollable list ──────────────────────────────────────────────── */
+  .scoreboard-list {
+    @apply flex-1 overflow-y-auto py-3 px-3 flex flex-col gap-2;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
+  }
+
+  .scoreboard-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scoreboard-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scoreboard-list::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.4);
+    border-radius: 3px;
+  }
+
+  /* ── Match card ─────────────────────────────────────────────────────────── */
+  .match-card {
+    @apply grid grid-cols-[1fr_auto_1fr] items-center
+    bg-gray-800/60 border border-indigo-500/18 rounded-md
+    py-3 px-4 gap-2 transition-colors duration-150;
+  }
+
+  .match-card:hover {
+    @apply border-indigo-500/45;
+  }
+
+  /* Player panels */
+  .match-player {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .match-player--left {
+    @apply items-start;
+  }
+
+  .match-player--right {
+    @apply items-end;
+  }
+
+  .match-player__name {
+    @apply text-sm font-bold
+    flex items-center gap-1;
+  }
+
+  .match-player--left .match-player__name {
+    @apply flex-row;
+  }
+
+  .match-player--right .match-player__name {
+    @apply flex-row-reverse;
+  }
+
+  .badge-winner {
+    @apply text-amber-400;
+  }
+
+  .badge-loser {
+    @apply text-slate-400;
+  }
+
+  .match-player__stats {
+    @apply text-xs text-slate-400;
+  }
+
+  .match-player__stats span {
+    @apply text-slate-200 font-semibold;
+  }
+
+  .badge-guest {
+    @apply text-xs py-0.5 px-2 rounded-full
+    bg-slate-400/12 border border-slate-400/25
+    text-slate-400 whitespace-nowrap;
+  }
+
+  /* Center info */
+  .match-center {
+    @apply flex flex-col items-center gap-1 min-w-[110px];
+  }
+
+  .match-score {
+    @apply text-2xl font-black
+    text-slate-200 tracking-widest;
+  }
+
+  .match-score__sep {
+    @apply text-slate-600 mx-1;
+  }
+
+  .match-duration {
+    @apply text-xs text-slate-400;
+  }
+
+  .match-overtime-badge {
+    @apply text-xs py-0.5 px-2 rounded-full
+    bg-amber-600/15 border border-amber-600/35
+    text-amber-500;
+  }
+
+  /* ── Pagination bar ─────────────────────────────────────────────────────── */
+  .scoreboard-pager {
+    @apply flex items-center justify-center gap-3
+    py-2 px-4 border-t border-indigo-500/18 flex-shrink-0;
+  }
+
+  .pager-btn {
+    @apply bg-indigo-500/12 border border-indigo-500/35
+    text-indigo-300 py-1 px-3
+    rounded-full text-xs cursor-pointer transition-colors duration-150;
+  }
+
+  .pager-btn:hover:not(:disabled) {
+    @apply bg-indigo-500/28;
+  }
+
+  .pager-btn:disabled {
+    @apply opacity-35 cursor-default;
+  }
+
+  .pager-info {
+    @apply text-xs text-slate-400 whitespace-nowrap;
+  }
+
+  /* ── Empty / loading / error states ────────────────────────────────────── */
+  .scoreboard-state {
+    @apply flex-1 flex items-center justify-center
+    text-slate-500 text-sm;
+  }
+
+  /* ── Live indicator ─────────────────────────────────────────────────────── */
+  .scoreboard-live-dot {
+    @apply inline-block w-2 h-2 rounded-full
+    bg-green-400 ml-2 align-middle;
+    animation: live-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes live-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.75);
+  }
+}

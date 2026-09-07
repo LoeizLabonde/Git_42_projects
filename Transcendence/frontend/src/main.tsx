@@ -1,0 +1,74 @@
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+import './language.tsx'
+import { BrowserRouter } from 'react-router-dom'
+import axios from 'axios'
+import { RefreshProvider } from './refreshToken.tsx'
+
+
+export type UserRoles = "USER" | "ADMIN" | "GUEST"
+
+export type User = {
+		id: string;
+		email: string | null;
+		username: string;
+		avatarUrl: string | null;
+		role: UserRoles;
+}
+
+interface AuthContextType {
+	user: User | null;
+	setUser: React.Dispatch<React.SetStateAction<User | null>>
+	accessToken: string | null;
+	setAccessToken: React.Dispatch<React.SetStateAction<string | null>>
+	loadingAuth: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function AuthProvider({ children }: { children: React.ReactNode }) {
+	const [user, setUser] = useState<User | null>(null);
+	const [accessToken, setAccessToken] = useState<string | null>(null);
+	const [loadingAuth, setLoadingAuth] = useState<boolean>(true);
+
+	useEffect(() => {
+		const fetchMe = async () => {
+			try {
+				const response = await axios.get('/api/users/me', { withCredentials: true })
+				setUser(response.data?.user)
+			} catch {
+				setUser(null)
+			} finally {
+				setLoadingAuth(false)
+			}
+		}
+
+		fetchMe()
+	}, [])
+
+	return (
+		<AuthContext.Provider value={{ user, setUser, accessToken, setAccessToken, loadingAuth }}>
+			{children}
+		</AuthContext.Provider>
+	)
+}
+
+export function useAuth() {
+	const ctx = useContext(AuthContext);
+	if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+	return ctx;
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+	<AuthProvider>
+		<React.StrictMode>
+			<BrowserRouter>
+				<RefreshProvider>
+					<App />
+				</RefreshProvider>
+			</BrowserRouter>
+		</React.StrictMode>
+	</AuthProvider>
+)

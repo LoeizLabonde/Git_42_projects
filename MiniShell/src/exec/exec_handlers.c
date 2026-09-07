@@ -1,0 +1,126 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   exec_handlers.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: apetitco <apetitco@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/15 14:03:09 by apetitco          #+#    #+#             */
+/*   Updated: 2025/01/15 14:03:12 by apetitco         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+#include <libft.h>
+
+void	handler_dup2(t_cmd *to_launch, t_pipes *pipes)
+{
+	if (to_launch->fd_i != STDIN_FILENO)
+		(dup2(to_launch->fd_i, STDIN_FILENO), close(to_launch->fd_i));
+	else if (to_launch->prev)
+	{
+		dup2(pipes->pipe[pipes->pipe_i - 1][0], STDIN_FILENO);
+		close(pipes->pipe[pipes->pipe_i - 1][0]);
+	}
+	if (to_launch->fd_o != STDOUT_FILENO)
+		(dup2(to_launch->fd_o, STDOUT_FILENO), close(to_launch->fd_o));
+	else if (to_launch->next)
+	{
+		dup2(pipes->pipe[pipes->pipe_i][1], STDOUT_FILENO);
+		close(pipes->pipe[pipes->pipe_i][1]);
+	}
+	if (to_launch->prev)
+		close(pipes->pipe[pipes->pipe_i - 1][1]);
+	if (to_launch->next)
+		close(pipes->pipe[pipes->pipe_i][0]);
+}
+
+/// @brief
+/// @param to_launch The current command we want to execute.
+/// @param pipes The current pipe.
+/// @param envp The environment variables
+/// @param mo_shell
+int	child_process_ext(t_cmd *to_launch, t_pipes *pipes, char *envp[], \
+	t_mo_shell *mo_shell)
+{
+	int	status;
+
+	(void)mo_shell;
+	status = 0;
+	status = check_if_dirfile_exist(to_launch->cmd);
+	if (status)
+		exit(status);
+	handler_dup2(to_launch, pipes);
+	execve(to_launch->cmd, to_launch->args, envp);
+	err_msg(CMD_NOT_FOUND_MSG, to_launch->cmd);
+	exit(127);
+}
+
+int	child_process_bi(t_cmd *to_launch, t_pipes *pipes, t_mo_shell *mo_shell, \
+	int mode)
+{
+	int	(*f_builtin)(char **, t_mo_shell *mo_shell, t_cmd *cmd);
+
+	if (mode == 1 && ft_strcmp(to_launch->cmd, "exit") == 0)
+		mode = 0;
+	if (mode == 0)
+	{
+		handler_dup2(to_launch, pipes);
+		f_builtin = (launch_builtin(to_launch));
+		if (f_builtin(to_launch->args, mo_shell, to_launch) == 0)
+			exit(EXIT_SUCCESS);
+		exit(EXIT_FAILURE);
+	}
+	if (mode == 1)
+	{
+		handler_dup2(to_launch, pipes);
+		f_builtin = (launch_builtin(to_launch));
+		mo_shell->les = f_builtin(to_launch->args, mo_shell, \
+			to_launch);
+		if (mo_shell->les == 0)
+			return (EXIT_SUCCESS);
+		return (mo_shell->les);
+	}
+	return (EXIT_FAILURE);
+}
+
+void	close_cp_fds(t_cmd *to_launch)
+{
+	if (to_launch->cp_i)
+		(close(to_launch->cp_i), to_launch->cp_i = 0);
+	if (to_launch->cp_o)
+		(close(to_launch->cp_o), to_launch->cp_o = 0);
+}
+
+/// @brief Runs a command that is not builtin into the shell.
+/// @param mo_shell The Mother Shell structure.
+/// @param to_launch The command that is next in line to be run.
+/// @param pipes_array The srtucture that holds all the pipes file descriptors.
+/// @param pids_array The structure that holds all the PIDs.
+int	fork_for_cmd(t_mo_shell *mo_shell, t_cmd *to_launch, \
+	t_pipes *pipes_array, t_pids *pids_array)
+{
+	int		ret;
+
+	ret = mo_shell->les;
+	if (is_builtin(to_launch->cmd) == true && !to_launch->prev && \
+		!to_launch->next)
+		ret = child_process_bi(to_launch, pipes_array, mo_shell, 1);
+	else
+	{
+		pids_array->pid[pids_array->pid_i] = fork();
+		if (pids_array->pid[pids_array->pid_i] == -1)
+			(perror("fork error\n"), exit(EXIT_FAILURE));
+		if (pids_array->pid[pids_array->pid_i] == 0)
+		{
+			close_cp_fds(to_launch);
+			signal(SIGQUIT, SIG_DFL);
+			if (is_builtin(to_launch->cmd) == false)
+				child_process_ext(to_launch, pipes_array, mo_shell->shell_env, \
+					mo_shell);
+			if (is_builtin(to_launch->cmd) == true)
+				child_process_bi(to_launch, pipes_array, mo_shell, 0);
+		}
+	}
+	return (ret);
+}

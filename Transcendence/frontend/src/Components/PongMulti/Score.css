@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@layer components {
+  .score-container {
+    @apply absolute top-5 left-1/2 -translate-x-1/2 text-center
+    text-white font-mono z-10;
+  }
+
+  .score-display {
+    @apply text-6xl font-bold;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+
+  .score-left,
+  .score-right {
+    @apply inline-block min-w-fit;
+  }
+
+  .score-separator {
+    @apply mx-5 opacity-50;
+  }
+
+  .score-info {
+    @apply text-sm mt-2.5 opacity-70;
+  }
+}

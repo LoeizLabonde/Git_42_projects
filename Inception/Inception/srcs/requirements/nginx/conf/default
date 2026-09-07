@@ -1,0 +1,50 @@
+server {
+    listen 443 ssl http2;
+    server_name llabonde.42.fr;
+
+    root /var/www/html;
+    index index.php index.html index.htm;
+
+    ssl_certificate /etc/ssl/certs/nginx.crt;
+    ssl_certificate_key /etc/ssl/private/nginx.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers off;
+
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_tickets off;
+
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    # Use Docker embedded DNS so nginx can resolve service names like 'wordpress'.
+    resolver 127.0.0.11 valid=30s;
+    resolver_timeout 5s;
+
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options DENY;
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        # Use a variable so nginx performs DNS resolution at runtime (avoids startup failure
+        # if the php-fpm container isn't resolvable yet).
+        set $php_upstream "wordpress:9000";
+        fastcgi_pass $php_upstream;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+        # Pass the actual HTTP_HOST (includes port) to WordPress so it doesn't drop the port
+        fastcgi_param HTTP_HOST $http_host;
+        # WordPress uses SERVER_PORT to build URLs - pass the external port, not internal 443
+        # Since nginx listens on 443 but is exposed as 9443, we need to tell WordPress about 9443
+        fastcgi_param SERVER_PORT 9443;
+        # Tell WordPress it's HTTPS even though FastCGI is plain HTTP
+        fastcgi_param HTTPS on;
+    }
+}
